@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http.Headers;
 using System.Text;
 using API.Middleware;
 using Application.Interfaces;
@@ -7,6 +8,7 @@ using Data;
 using Data.Models;
 using FluentValidation.AspNetCore;
 using Infrastructure.Security;
+using Infrastructure.User;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -76,9 +78,17 @@ namespace API
                 };
             });
 
+
+            services.AddHttpClient("activities", c =>
+             {
+                 c.BaseAddress = new Uri("http://localhost:5000");
+             });
+
             //DI
             services.AddScoped<IUserAccessor, UserAccessor>();
             services.AddScoped<IJwtGenerator, JwtGenerator>();
+
+            services.AddScoped<IUserActivitiesApp, UserActivitiesApp>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

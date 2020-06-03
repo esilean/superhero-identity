@@ -40,9 +40,12 @@ namespace Application.User
             private readonly DataContext _context;
             private readonly IJwtGenerator _jwtGenerator;
             private readonly UserManager<AppUser> _userManager;
+            private readonly IUserActivitiesApp _userActivitiesApp;
 
-            public Handler(DataContext context, UserManager<AppUser> userManager, IJwtGenerator jwtGenerator)
+            public Handler(DataContext context, UserManager<AppUser> userManager, IJwtGenerator jwtGenerator,
+            IUserActivitiesApp userActivitiesApp)
             {
+                _userActivitiesApp = userActivitiesApp;
                 _userManager = userManager;
                 _jwtGenerator = jwtGenerator;
                 _context = context;
@@ -63,16 +66,24 @@ namespace Application.User
                     UserName = request.Username
                 };
 
-                var result = await _userManager.CreateAsync(user, request.Password);
-                if (result.Succeeded)
+
+                var token = _jwtGenerator.CreateToken(user);
+                //try create local user
+                var userCreated = await _userActivitiesApp.CreateUser(user.UserName, token);
+
+                if (userCreated)
                 {
-                    return new User
+                    var result = await _userManager.CreateAsync(user, request.Password);
+                    if (result.Succeeded)
                     {
-                        Email = user.Email,
-                        DisplayName = user.DisplayName,
-                        Username = user.UserName,
-                        Token = _jwtGenerator.CreateToken(user)
-                    };
+                        return new User
+                        {
+                            Email = user.Email,
+                            DisplayName = user.DisplayName,
+                            Username = user.UserName,
+                            Token = token
+                        };
+                    }
                 }
 
                 throw new Exception("Problem creating user");
