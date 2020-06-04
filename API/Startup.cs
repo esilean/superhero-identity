@@ -24,19 +24,37 @@ namespace API
 {
     public class Startup
     {
-        public IConfiguration configuration { get; }
+        public IConfiguration Configuration { get; }
         public Startup(IConfiguration configuration)
         {
-            this.configuration = configuration;
+            Configuration = configuration;
+        }
+
+        public void ConfigureDevelopmentServices(IServiceCollection services)
+        {
+            // DB Setup
+            services.AddDbContext<DataContext>(opt =>
+            {
+                opt.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
+            });
+
+            ConfigureServices(services);
+        }
+
+        public void ConfigureProductionServices(IServiceCollection services)
+        {
+            // DB Setup
+            services.AddDbContext<DataContext>(opt =>
+            {
+                opt.UseMySql(Configuration.GetConnectionString("DefaultConnection"));
+            });
+
+            ConfigureServices(services);
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            //DB SETUP
-            services.AddDbContext<DataContext>(opt =>
-            {
-                opt.UseSqlite(this.configuration.GetConnectionString("DefaultConnection"));
-            });
+
             // CORS
             services.AddCors(opt =>
             {
@@ -63,7 +81,7 @@ namespace API
                 .AddEntityFrameworkStores<DataContext>();
 
             //Authentication
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.configuration["TokenKey"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["TokenKey"]));
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(opt =>
             {
