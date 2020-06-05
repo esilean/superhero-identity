@@ -64,7 +64,7 @@ namespace API
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .WithExposedHeaders("WWW-Authenticate")
-                        .WithOrigins("http://localhost:3000").AllowCredentials();
+                        .WithOrigins(Configuration["ActivitiesApp"]).AllowCredentials();
                 });
             });
 
@@ -99,7 +99,7 @@ namespace API
 
             services.AddHttpClient("activities", c =>
              {
-                 c.BaseAddress = new Uri("http://localhost:5000");
+                 c.BaseAddress = new Uri(Configuration["GatewayAPIBaseURL"]);
              });
 
             //DI
@@ -116,8 +116,20 @@ namespace API
                 app.UseDeveloperExceptionPage();
             }
             app.UseMiddleware<ErrorHandlerMiddleware>();
-
             //app.UseHttpsRedirection();
+            app.UseXContentTypeOptions();
+            app.UseReferrerPolicy(opt => opt.NoReferrer());
+            app.UseXXssProtection(opt => opt.EnabledWithBlockMode());
+            app.UseXfo(opt => opt.Deny());
+            app.UseCspReportOnly(opt => opt
+               .BlockAllMixedContent()
+               .StyleSources(s => s.Self())
+               .FontSources(s => s.Self())
+               .FormActions(s => s.Self())
+               .FrameAncestors(s => s.Self())
+               .ImageSources(s => s.Self())
+               .ScriptSources(s => s.Self())
+                );
 
             app.UseRouting();
             app.UseCors("CorsPolicy");
@@ -128,6 +140,10 @@ namespace API
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapGet("/", async context =>
+                {
+                    await context.Response.WriteAsync("SUPER HERO AUTH API IS RUNNING! MYSQL!");
+                });
             });
         }
     }

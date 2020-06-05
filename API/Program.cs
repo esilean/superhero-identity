@@ -36,6 +36,8 @@ namespace API
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.UseIISIntegration();
+                    webBuilder.UseKestrel(x => x.AddServerHeader = false);
                     webBuilder.UseStartup<Startup>();
                 });
     }
