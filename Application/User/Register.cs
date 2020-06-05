@@ -63,13 +63,14 @@ namespace Application.User
                 {
                     DisplayName = request.DisplayName,
                     Email = request.Email,
-                    UserName = request.Username
+                    UserName = request.Username,
+                    RefreshToken = _jwtGenerator.GenerateRefreshToken(),
+                    RefreshTokenExpiry = DateTime.UtcNow.AddDays(30)
                 };
-
 
                 var token = _jwtGenerator.CreateToken(user);
                 //try create local user
-                var userCreated = await _userActivitiesApp.CreateUser(user.UserName, token);
+                var userCreated = await _userActivitiesApp.CreateUser(user.DisplayName, token);
 
                 if (userCreated)
                 {
@@ -81,7 +82,8 @@ namespace Application.User
                             Email = user.Email,
                             DisplayName = user.DisplayName,
                             Username = user.UserName,
-                            Token = token
+                            Token = token,
+                            RefreshToken = user.RefreshToken
                         };
                     }
                 }

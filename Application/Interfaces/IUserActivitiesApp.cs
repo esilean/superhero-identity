@@ -5,6 +5,6 @@ namespace Application.Interfaces
 {
     public interface IUserActivitiesApp
     {
-        Task<bool> CreateUser(string username, string token);
+        Task<bool> CreateUser(string displayName, string token);
     }
 }

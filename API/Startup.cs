@@ -3,11 +3,13 @@ using System.Net.Http.Headers;
 using System.Text;
 using API.Middleware;
 using Application.Interfaces;
+using Application.Interfaces.Social;
 using Application.User;
 using Data;
 using Data.Models;
 using FluentValidation.AspNetCore;
 using Infrastructure.Security;
+using Infrastructure.Security.Social;
 using Infrastructure.User;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -35,7 +37,7 @@ namespace API
             // DB Setup
             services.AddDbContext<DataContext>(opt =>
             {
-                opt.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
+                opt.UseMySql(Configuration.GetConnectionString("DefaultConnection"));
             });
 
             ConfigureServices(services);
@@ -105,8 +107,11 @@ namespace API
             //DI
             services.AddScoped<IUserAccessor, UserAccessor>();
             services.AddScoped<IJwtGenerator, JwtGenerator>();
-
+            services.AddScoped<IFacebookAccessor, FacebookAccessor>();
             services.AddScoped<IUserActivitiesApp, UserActivitiesApp>();
+
+            //Configs
+            services.Configure<FacebookAppSettings>(Configuration.GetSection("Authentication:Facebook"));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
